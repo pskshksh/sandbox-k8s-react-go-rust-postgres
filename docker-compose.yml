@@ -1,0 +1,43 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: sandbox
+      POSTGRES_PASSWORD: sandbox
+      POSTGRES_DB: sandbox
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  go-api:
+    build:
+      context: ./services/go-api
+    environment:
+      DB_URL: postgres://sandbox:sandbox@postgres:5432/sandbox?sslmode=disable
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+
+  rust-api:
+    build:
+      context: ./services/rust-api
+    environment:
+      DB_URL: postgres://sandbox:sandbox@postgres:5432/sandbox?sslmode=disable
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres
+
+  frontend:
+    build:
+      context: ./services/frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - go-api
+      - rust-api
+
+volumes:
+  postgres_data:

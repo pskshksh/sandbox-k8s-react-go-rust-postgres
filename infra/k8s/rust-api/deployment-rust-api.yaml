@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rust-api
+  namespace: sandbox
+spec:
+  selector:
+    matchLabels:
+      app: rust-api
+  template:
+    metadata:
+      labels:
+        app: rust-api
+    spec:
+      containers:
+        - name: rust-api
+          image: pskshksh/sandbox-rust-api:v0.0.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  key: DB_URL
+                  name: postgres-secret
+          ports:
+            - containerPort: 8081
+          livenessProbe:
+            httpGet:
+              port: 8081
+              path: /healthz
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              port: 8081
+              path: /readyz
+            initialDelaySeconds: 5
+            periodSeconds: 10
